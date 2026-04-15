@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "653068813317",
+    "project_id": "seladata-app",
+    "storage_bucket": "seladata-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653068813317:android:ee0a31edf26d130c8ac86c",
+        "android_client_info": {
+          "package_name": "com.example.seladata"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_uNGPf98VaNxEjp9jJx_zWToIiBiDpuE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

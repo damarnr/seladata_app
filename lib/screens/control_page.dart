@@ -9,149 +9,126 @@ class ControlPage extends StatefulWidget {
 }
 
 class _ControlPageState extends State<ControlPage> {
-  // State untuk switch (simulasi)
   bool isPompaOn = true;
   bool isFanOn = false;
   bool isLightOn = true;
-  double lightBrightness = 0.85; // 85%
+  double lightBrightness = 0.85;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Menggunakan SafeArea agar header tidak tertutup status bar HP
+      backgroundColor: const Color(0xFFF8F9FA), // Warna background yang lebih clean
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start, // Align text ke kiri
             children: [
-              // --- BAGIAN HEADER (LOGO & STATUS) ---
+              // 1. HEADER (Logo & ESP Status)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Row(
+                    children: [
                   const Text(
                     "🌱 SelaData",
-                    style: TextStyle(
-                        fontSize: 22, 
-                        fontWeight: FontWeight.bold, 
-                        color: Color(0xFF1E824C)),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E824C)),
+                  ),
+                    ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFFD1FADF),
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.circle, size: 8, color: Colors.green),
-                        SizedBox(width: 6),
-                        Text("ESP32 Online", 
-                            style: TextStyle(
-                                fontSize: 12, 
-                                fontWeight: FontWeight.bold, 
-                                color: Colors.green)),
-                      ],
+                    child: Text(
+                      "ESP32 Online",
+                      style: TextStyle(
+                          fontSize: 13, 
+                          fontWeight: FontWeight.w600, 
+                          color: Colors.green[900]),
                     ),
                   )
                 ],
               ),
-              const SizedBox(height: 25), // Jarak ke Spanduk
-              // -------------------------------------
+              const SizedBox(height: 30),
 
-              // 1. Spanduk Hijau (Banner)
-              Container(
-                padding: const EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E824C),
-                  borderRadius: BorderRadius.circular(20),
-                  // Menambahkan shadow tipis agar lebih modern
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("System Controls",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold)),
-                    SizedBox(height: 10),
-                    Text(
-                      "Manage your ecosystem in real-time.",
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
-                ),
+              // 2. TITLE SECTION
+              Text(
+                "System Controls",
+                style: TextStyle(
+                    fontSize: 28, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.green[900]),
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 4),
+              const Text(
+                "Manage your ecosystem in real-time",
+                style: TextStyle(fontSize: 15, color: Colors.black54),
+              ),
+              const SizedBox(height: 30),
 
-              // 2. Daftar Kontrol Manual
+              // 3. CONTROL CARDS
               _buildControlCard(
-                icon: Icons.water_drop,
+                icon: Icons.opacity,
                 title: "Water Pump",
-                subtitle: "Current State: ${isPompaOn ? 'Active' : 'Standby'}",
-                color: Colors.blue.shade400,
+                state: isPompaOn ? "Active" : "Standby",
+                color: const Color(0xFFD1FADF),
+                iconColor: Colors.green[800]!,
                 isOn: isPompaOn,
-                onChanged: (value) {
-                  setState(() {
-                    isPompaOn = value;
-                  });
-                },
+                onChanged: (val) => setState(() => isPompaOn = val),
               ),
-              const SizedBox(height: 15),
-
+              const SizedBox(height: 20),
+              
               _buildControlCard(
-                icon: Icons.mode_fan_off_outlined,
+                icon: Icons.toys_outlined, // Icon Fan
                 title: "Exhaust Fan",
-                subtitle: "Current State: ${isFanOn ? 'Active' : 'Standby'}",
-                color: Colors.orange.shade400,
+                state: isFanOn ? "Active" : "Standby",
+                color: const Color(0xFFFFE4D6),
+                iconColor: Colors.orange[800]!,
                 isOn: isFanOn,
-                onChanged: (value) {
-                  setState(() {
-                    isFanOn = value;
-                  });
-                },
+                onChanged: (val) => setState(() => isFanOn = val),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 30),
 
-              // 3. Kontrol Spesial dengan Slider (Grow Lights)
-              _buildLightControlCard(),
-              const SizedBox(height: 25),
-
-              // 4. Bagian Automations (Simulation)
+              // 4. AUTOMATIONS SECTION
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Automations",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add_circle_outline, size: 18),
-                    label: const Text("New Rule", style: TextStyle(fontSize: 12)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.green.shade50,
-                      foregroundColor: Colors.green,
+                  Text(
+                    "Automations",
+                    style: TextStyle(
+                        fontSize: 22, 
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.blueGrey[900]),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD1FADF),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, size: 18, color: Colors.green[900]),
+                        const SizedBox(width: 4),
+                        Text("New Rule", style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold)),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 15),
-              
+              const SizedBox(height: 20),
+
+              // 5. AUTOMATION CARDS
               _buildAutomationCard(
-                icon: Icons.schedule,
+                icon: Icons.access_time,
                 title: "Scheduled Watering",
-                time: "Daily • 08:00 AM",
-                details: "15 Minutes duration",
+                subtitle: "Daily • 08:00 AM • 15 Minutes",
                 isActive: true,
               ),
-              const SizedBox(height: 100), // Spasi bawah agar tidak tertutup nav bar
+              const SizedBox(height: 100),
             ],
           ),
         ),
@@ -159,100 +136,49 @@ class _ControlPageState extends State<ControlPage> {
     );
   }
 
-  // --- Widget helper tetap sama seperti sebelumnya ---
   Widget _buildControlCard({
     required IconData icon,
     required String title,
-    required String subtitle,
+    required String state,
     required Color color,
+    required Color iconColor,
     required bool isOn,
     required ValueChanged<bool> onChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: color.withOpacity(0.1),
-            radius: 20,
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-          ),
-          Switch(
-            value: isOn,
-            onChanged: onChanged,
-            activeColor: const Color(0xFF1E824C),
-          ),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5))
         ],
       ),
-    );
-  }
-
-  Widget _buildLightControlCard() {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CircleAvatar(
-                backgroundColor: Colors.green.shade50,
-                radius: 20,
-                child: const Icon(Icons.lightbulb_outline, color: Colors.green),
-              ),
-              const SizedBox(width: 20),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Grow Lights", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    Text("Dimmable LED Array", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
+                backgroundColor: color,
+                radius: 25,
+                child: Icon(icon, color: iconColor, size: 28),
               ),
               Switch(
-                value: isLightOn,
-                onChanged: (value) => setState(() => isLightOn = value),
-                activeColor: const Color(0xFF1E824C),
+                value: isOn,
+                onChanged: onChanged,
+                activeColor: Colors.white,
+                activeTrackColor: const Color(0xFF1E824C),
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: Colors.grey[300],
               ),
             ],
           ),
-          if (isLightOn) ...[
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("BRIGHTNESS", style: TextStyle(fontSize: 10, color: Colors.grey, letterSpacing: 1.1)),
-                Text("${(lightBrightness * 100).toInt()}%", style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Slider(
-              value: lightBrightness,
-              onChanged: (value) => setState(() => lightBrightness = value),
-              activeColor: const Color(0xFF1E824C),
-              inactiveColor: Colors.green.shade50,
-            ),
-          ]
+          const SizedBox(height: 25),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text("Current State: $state", style: const TextStyle(color: Colors.black45, fontSize: 14)),
         ],
       ),
     );
@@ -261,36 +187,33 @@ class _ControlPageState extends State<ControlPage> {
   Widget _buildAutomationCard({
     required IconData icon,
     required String title,
-    required String time,
-    required String details,
+    required String subtitle,
     required bool isActive,
   }) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade100),
+        color: const Color(0xFFF1F3F4),
+        borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundColor: Colors.grey.shade100,
-            radius: 20,
-            child: Icon(icon, color: Colors.black54),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.green[800]),
           ),
           const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                Text(time, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                Text(details, style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic)),
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(color: Colors.black54, fontSize: 13)),
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
+          const Icon(Icons.chevron_right, color: Colors.black26),
         ],
       ),
     );

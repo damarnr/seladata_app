@@ -7,103 +7,128 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA), // Serasi dengan ControlPage
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start, // Align kiri agar konsisten
             children: [
-              // Header & ESP32 Status
+              // 1. HEADER (Logo & ESP Status) - Meniru persis ControlPage
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     "🌱 SelaData",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E824C)),
+                    style: TextStyle(
+                        fontSize: 22, 
+                        fontWeight: FontWeight.bold, 
+                        color: Color(0xFF1E824C)),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFFD1FADF),
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.circle, size: 8, color: Colors.green),
-                        SizedBox(width: 6),
-                        Text("ESP32 ONLINE", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green)),
-                      ],
+                    child: Text(
+                      "ESP32 Online",
+                      style: TextStyle(
+                          fontSize: 13, 
+                          fontWeight: FontWeight.w600, 
+                          color: Colors.green[900]),
                     ),
                   )
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
-              // Banner
+              // 2. TITLE SECTION
+              Text(
+                "Active Environment",
+                style: TextStyle(
+                    fontSize: 28, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.green[900]),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Your Hydroponic System is Thriving",
+                style: TextStyle(fontSize: 15, color: Colors.black54),
+              ),
+              const SizedBox(height: 30),
+
+              // 3. MAIN BANNER
               Container(
                 padding: const EdgeInsets.all(25),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E824C),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(30), // Radius serasi (30)
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("ACTIVE ENVIRONMENT", style: TextStyle(color: Colors.white70, fontSize: 12, letterSpacing: 1.2)),
+                    Text("SYSTEM STATUS", 
+                      style: TextStyle(color: Colors.white70, fontSize: 12, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     Text(
-                      "Your Hydroponic System is Thriving",
-                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                      "Optimal Growth Stage",
+                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 10),
                     Text(
-                      "Semua sensor menunjukkan kondisi optimal untuk pertumbuhan saat ini.",
+                      "Semua sensor menunjukkan kondisi terbaik untuk pertumbuhan selada saat ini.",
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 30),
+
+              const Text("Latest Readings", 
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF263238))),
               const SizedBox(height: 20),
 
-              const Text("Latest Readings:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 15),
-
-              _buildSensorCard(
-                icon: Icons.water_drop,
-                title: "pH BALANCE",
-                value: "6.2",
-                unit: "pH",
-                color: Colors.blue.shade400,
-                isLarge: true,
-              ),
-              const SizedBox(height: 15),
-
-              GridView.count(
+              // 4. SENSOR CARDS (Menggunakan Grid agar rapi)
+              // Di dalam Column dashboard_page.dart
+                GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                childAspectRatio: 1.2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.0, // Cobalah nilai 1.0 atau 1.1 sesuai selera
                 children: [
-                  _buildSensorCard(icon: Icons.thermostat, title: "Temperature", value: "24", unit: "°C", color: Colors.red.shade400),
-                  _buildSensorCard(icon: Icons.invert_colors, title: "Humidity", value: "65", unit: "%", color: Colors.cyan.shade400),
-                  _buildSensorCard(icon: Icons.waves, title: "Water Level", value: "HIGH", unit: "", color: Colors.blueAccent),
-                  _buildSensorCard(icon: Icons.science, title: "Nutrient Levels", value: "1.2", unit: "mS/cm", color: Colors.orange),
+                  _buildSensorCard(icon: Icons.water_drop, title: "pH Level", value: "6.2", unit: "pH", color: Colors.blue[50]!, iconColor: Colors.blue[700]!),
+                  _buildSensorCard(icon: Icons.thermostat, title: "Temp", value: "24", unit: "°C", color: Colors.red[50]!, iconColor: Colors.red[700]!),
+                  _buildSensorCard(icon: Icons.opacity, title: "Humidity", value: "65", unit: "%", color: Colors.cyan[50]!, iconColor: Colors.cyan[700]!),
+                  _buildSensorCard(icon: Icons.bolt, title: "Nutrient", value: "1.2", unit: "mS", color: Colors.orange[50]!, iconColor: Colors.orange[700]!),
                 ],
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 30),
 
-              const Text("Weekly Temperature Trend", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
+              // 5. CHART SECTION
+              const Text("Temperature Trend", 
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF263238))),
+              const SizedBox(height: 15),
               Container(
-                height: 180,
+                height: 200,
+                width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5))
+                  ],
                 ),
-                child: const Center(child: Text("📊 [GRAFIK DASHBOARD]")),
+                child: const Center(child: Text("📊 Weekly Chart Visualization", style: TextStyle(color: Colors.grey))),
               ),
               const SizedBox(height: 100),
             ],
@@ -113,49 +138,86 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSensorCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required String unit,
-    required Color color,
-    bool isLarge = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: isLarge ? 30 : 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(10)),
-                child: const Text("NORMAL", style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+  // Helper Widget Sensor Card yang diserasikan dengan gaya ControlPage
+// lib/screens/dashboard_page.dart
+
+// lib/screens/dashboard_page.dart
+
+Widget _buildSensorCard({
+  required IconData icon,
+  required String title,
+  required String value,
+  required String unit,
+  required Color color,
+  required Color iconColor,
+}) {
+  return Container(
+    padding: const EdgeInsets.all(18), // Padding yang pas
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(28), // Radius sudut yang halus
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.04),
+          blurRadius: 12,
+          offset: const Offset(0, 6),
+        )
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Baris 1: Ikon
+        CircleAvatar(
+          backgroundColor: color,
+          radius: 20,
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        
+        // Baris 2: Data (Angka & Label)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Angka Sensor (Value) - Diperbesar
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 30, // Ukuran angka lebih besar sesuai permintaan
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF263238),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  unit,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.blueGrey[200],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            // Nama Sensor (Title)
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.blueGrey[400],
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
               ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Text(title, style: TextStyle(fontSize: isLarge ? 14 : 12, color: Colors.grey.shade600)),
-          const SizedBox(height: 5),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(value, style: TextStyle(fontSize: isLarge ? 40 : 28, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 5),
-              Text(unit, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 }
