@@ -1,5 +1,6 @@
 // lib/screens/reports_page.dart
 import 'package:flutter/material.dart';
+import '../widgets/custom_header.dart'; // 1. IMPORT WIDGET CUSTOM
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
@@ -14,52 +15,29 @@ class ReportsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. HEADER (Sama dengan page lain agar serasi)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "🌱 SelaData",
-                    style: TextStyle(
-                        fontSize: 22, 
-                        fontWeight: FontWeight.bold, 
-                        color: Color(0xFF1E824C)),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1FADF),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Text(
-                      "ESP32 Online",
-                      style: TextStyle(
-                          fontSize: 13, 
-                          fontWeight: FontWeight.w600, 
-                          color: Colors.green[900]),
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 30),
+              // 2. GANTI HEADER LAMA DENGAN CUSTOM HEADER
+              // Kita gunakan title "SelaData" agar serasi di semua tab
+              const CustomHeader(title: "SelaData"), 
+
+              const SizedBox(height: 20),
 
               // 2. TITLE
               Text(
-                "Data Reports",
+                "Data History",
                 style: TextStyle(
-                    fontSize: 28, 
+                    fontSize: 20, 
                     fontWeight: FontWeight.bold, 
                     color: Colors.green[900]),
               ),
               const SizedBox(height: 4),
               const Text(
-                "Historical analysis of your crops",
+                "Analisis historis tanaman Anda",
                 style: TextStyle(fontSize: 15, color: Colors.black54),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
               // 3. CHART PLACEHOLDER (Visual Utama)
-              const Text("Weekly pH Stability", 
+              const Text("Stabilitas pH Mingguan", 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
               Container(
@@ -78,7 +56,7 @@ class ReportsPage extends StatelessWidget {
                     children: [
                       Icon(Icons.stacked_line_chart, size: 50, color: Colors.green),
                       SizedBox(height: 10),
-                      Text("Graph Visualization Placeholder", style: TextStyle(color: Colors.grey)),
+                      Text("Visualisasi Grafik", style: TextStyle(color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -86,14 +64,14 @@ class ReportsPage extends StatelessWidget {
               const SizedBox(height: 30),
 
               // 4. LOGS / HISTORY LIST
-              const Text("Recent Activities", 
+              const Text("Aktivitas Terkini", 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
-              _buildLogTile("Water Pump", "Auto-on: Water level low", "08:00 AM", Colors.blue),
-              _buildLogTile("Nutrient System", "Dosage: 1.2 mS applied", "09:30 AM", Colors.orange),
-              _buildLogTile("Exhaust Fan", "Auto-off: Temp stabilized", "11:15 AM", Colors.red),
+              _buildLogTile("Pompa Air", "Otomatis menyala: Level air rendah", "08:00 AM", Colors.blue),
+              _buildLogTile("Sistem Nutrisi", "Dosis: 1,2 mS diterapkan", "09:30 AM", Colors.orange),
+              _buildLogTile("Kipas Exhaust", "Mati Otomatis: Suhu Stabil", "11:15 AM", Colors.red),
               
-              const SizedBox(height: 100), // Space agar tidak tertutup nav bar
+              const SizedBox(height: 100), 
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 // lib/screens/control_page.dart
 import 'package:flutter/material.dart';
+import '../widgets/custom_header.dart';
 
 class ControlPage extends StatefulWidget {
   const ControlPage({super.key});
@@ -9,124 +10,150 @@ class ControlPage extends StatefulWidget {
 }
 
 class _ControlPageState extends State<ControlPage> {
-  bool isPompaOn = true;
+  // Variabel State
+  bool isAutoMode = false; // Mode Otomatis vs Manual
+  bool isPompaOn = false;
   bool isFanOn = false;
-  bool isLightOn = true;
-  double lightBrightness = 0.85;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Warna background yang lebih clean
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align text ke kiri
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. HEADER (Logo & ESP Status)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+              // 1. CUSTOM HEADER
+              const CustomHeader(title: "SelaData"),
+              const SizedBox(height: 30),
+
+              // 2. KARTU SELEKSI MODE (Otomatis vs Manual)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isAutoMode ? const Color(0xFF1E824C) : Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    )
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: isAutoMode ? Colors.white24 : const Color(0xFFD1FADF),
+                      radius: 25,
+                      child: Icon(
+                        isAutoMode ? Icons.auto_awesome : Icons.touch_app,
+                        color: isAutoMode ? Colors.white : const Color(0xFF1E824C),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isAutoMode ? "Mode Otomatis Aktif" : "Mode Manual Aktif",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isAutoMode ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            isAutoMode 
+                                ? "Sistem bekerja berdasarkan sensor" 
+                                : "Kendali penuh di tangan Anda",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isAutoMode ? Colors.white70 : Colors.black45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: isAutoMode,
+                      onChanged: (val) {
+                        setState(() {
+                          isAutoMode = val;
+                        });
+                      },
+                      activeColor: Colors.white,
+                      activeTrackColor: Colors.green[300],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // 3. TITLE UNTUK MANUAL CONTROL
+              Text(
+                "Kontrol Manual",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey[900],
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // 4. KONTROL HARDWARE (Terkunci jika Mode Auto)
+              IgnorePointer(
+                ignoring: isAutoMode, // Mematikan interaksi jika Auto Mode ON
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: isAutoMode ? 0.5 : 1.0, // Efek pudar jika terkunci
+                  child: Column(
                     children: [
-                  const Text(
-                    "🌱 SelaData",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E824C)),
-                  ),
+                      _buildControlCard(
+                        icon: Icons.opacity,
+                        title: "Pompa air",
+                        state: isPompaOn ? "Aktif" : "Siaga",
+                        color: const Color(0xFFD1FADF),
+                        iconColor: Colors.green[800]!,
+                        isOn: isPompaOn,
+                        onChanged: (val) => setState(() => isPompaOn = val),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildControlCard(
+                        icon: Icons.toys_outlined,
+                        title: "Kipas Pendingin",
+                        state: isFanOn ? "Aktif" : "Siaga",
+                        color: const Color(0xFFFFE4D6),
+                        iconColor: Colors.orange[800]!,
+                        isOn: isFanOn,
+                        onChanged: (val) => setState(() => isFanOn = val),
+                      ),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1FADF),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Text(
-                      "ESP32 Online",
-                      style: TextStyle(
-                          fontSize: 13, 
-                          fontWeight: FontWeight.w600, 
-                          color: Colors.green[900]),
-                    ),
-                  )
-                ],
+                ),
               ),
+
               const SizedBox(height: 30),
 
-              // 2. TITLE SECTION
+              // 5. AUTOMATIONS SECTION (Hanya hiasan UI)
               Text(
-                "System Controls",
+                "Otomatisasi",
                 style: TextStyle(
-                    fontSize: 28, 
-                    fontWeight: FontWeight.bold, 
-                    color: Colors.green[900]),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey[900],
+                ),
               ),
-              const SizedBox(height: 4),
-              const Text(
-                "Manage your ecosystem in real-time",
-                style: TextStyle(fontSize: 15, color: Colors.black54),
-              ),
-              const SizedBox(height: 30),
-
-              // 3. CONTROL CARDS
-              _buildControlCard(
-                icon: Icons.opacity,
-                title: "Water Pump",
-                state: isPompaOn ? "Active" : "Standby",
-                color: const Color(0xFFD1FADF),
-                iconColor: Colors.green[800]!,
-                isOn: isPompaOn,
-                onChanged: (val) => setState(() => isPompaOn = val),
-              ),
-              const SizedBox(height: 20),
-              
-              _buildControlCard(
-                icon: Icons.toys_outlined, // Icon Fan
-                title: "Exhaust Fan",
-                state: isFanOn ? "Active" : "Standby",
-                color: const Color(0xFFFFE4D6),
-                iconColor: Colors.orange[800]!,
-                isOn: isFanOn,
-                onChanged: (val) => setState(() => isFanOn = val),
-              ),
-              const SizedBox(height: 30),
-
-              // 4. AUTOMATIONS SECTION
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Automations",
-                    style: TextStyle(
-                        fontSize: 22, 
-                        fontWeight: FontWeight.bold, 
-                        color: Colors.blueGrey[900]),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1FADF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.add, size: 18, color: Colors.green[900]),
-                        const SizedBox(width: 4),
-                        Text("New Rule", style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // 5. AUTOMATION CARDS
+              const SizedBox(height: 15),
               _buildAutomationCard(
                 icon: Icons.access_time,
-                title: "Scheduled Watering",
-                subtitle: "Daily • 08:00 AM • 15 Minutes",
-                isActive: true,
+                title: "Penyiraman Terjadwal",
+                subtitle: "Setiap Hari • 08:00 • 15 Menit",
               ),
               const SizedBox(height: 100),
             ],
@@ -136,6 +163,7 @@ class _ControlPageState extends State<ControlPage> {
     );
   }
 
+  // Helper Widget: Kartu Kontrol
   Widget _buildControlCard({
     required IconData icon,
     required String title,
@@ -178,17 +206,17 @@ class _ControlPageState extends State<ControlPage> {
           const SizedBox(height: 25),
           Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text("Current State: $state", style: const TextStyle(color: Colors.black45, fontSize: 14)),
+          Text("Status: $state", style: const TextStyle(color: Colors.black45, fontSize: 14)),
         ],
       ),
     );
   }
 
+  // Helper Widget: Kartu Automasi
   Widget _buildAutomationCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required bool isActive,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
