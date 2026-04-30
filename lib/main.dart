@@ -1,18 +1,15 @@
-// main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'dart:async';
 import 'firebase_options.dart';
 
 import 'screens/dashboard_page.dart';
 import 'screens/control_page.dart';
 import 'screens/reports_page.dart';
 import 'screens/login_page.dart';
-import 'screens/register_page.dart';
-import 'screens/splash_screen.dart';
 
-// 1. TAMBAHKAN KUNCI GLOBAL DI SINI
-// Ini adalah "remote control" agar Drawer bisa dibuka dari file lain
 final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
 void main() async {
@@ -32,11 +29,23 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SelaData',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 248, 248, 248),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E824C)),
         useMaterial3: true,
+        // Konsistensi warna hijau sesuai identitas SelaData
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1E824C),
+          primary: const Color(0xFF1E824C),
+        ),
+        // Mengatur font default agar bersih dan profesional
+        fontFamily: 'Roboto', 
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E824C),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+        ),
       ),
-      home: const SplashScreen(),
+      home: const LoginPage(),
     );
   }
 }
@@ -50,35 +59,104 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
+  String _displayName = "User SelaData";
+  StreamSubscription<DatabaseEvent>? _userSubscription;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // FUNGSI LOGOUT
-  Future<void> _handleLogout() async {
-    await FirebaseAuth.instance.signOut();
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-        (route) => false,
-      );
+  @override
+  void initState() {
+    super.initState();
+    _startUserListener();
+  }
+
+  void _startUserListener() {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      _userSubscription = FirebaseDatabase.instance
+          .ref('users/$uid')
+          .onValue
+          .listen((event) {
+        if (event.snapshot.value != null) {
+          final data = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+          if (mounted) {
+            setState(() {
+              _displayName = data['name']?.toString() ?? "User SelaData";
+            });
+          }
+        }
+      });
     }
   }
 
-  // FUNGSI DIALOG KONFIRMASI
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _showGuidelineDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          "Panduan Nutrisi",
+          style: TextStyle(color: Color(0xFF1E824C), fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildGuidelineItem(Icons.science_outlined, "pH Air", "Ideal: 5.5 - 6.5", Colors.blue),
+            const SizedBox(height: 10),
+            _buildGuidelineItem(Icons.water_drop_outlined, "PPM (TDS)", "Ideal: 800 - 1200", Colors.orange),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Tutup", style: TextStyle(color: Color(0xFF1E824C))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuidelineItem(IconData icon, String title, String value, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor),
+          const SizedBox(width: 15),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(value, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showLogoutDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         title: const Text("Logout"),
         content: const Text("Apakah Anda yakin ingin keluar dari SelaData?"),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Batal"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _handleLogout();
+            onPressed: () async {
+              await _auth.signOut();
+              if (mounted) Navigator.pushReplacementNamed(context, '/login');
             },
             child: const Text("Keluar", style: TextStyle(color: Colors.red)),
           ),
@@ -96,53 +174,115 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 2. PASANG KUNCI KE SCAFFOLD
-      key: scaffoldKey, 
-      
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      key: scaffoldKey,
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard),
-              label: 'Dashboard'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings_remote_outlined),
-              activeIcon: Icon(Icons.settings_remote),
-              label: 'Controls'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_rounded), 
-              label: 'Reports'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF1E824C),
-        unselectedItemColor: Colors.grey,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        type: BottomNavigationBarType.fixed,
+        elevation: 10,
         backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF1E824C),
+        unselectedItemColor: Colors.grey[400],
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings_remote_outlined), activeIcon: Icon(Icons.settings_remote), label: 'Controls'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), activeIcon: Icon(Icons.bar_chart), label: 'Reports'),
+        ],
       ),
       drawer: Drawer(
+        backgroundColor: Colors.white,
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFF1E824C)),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 40, color: Color(0xFF1E824C)),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1E824C),
+                borderRadius: BorderRadius.only(bottomRight: Radius.circular(30)),
               ),
-              accountName: const Text("User SelaData", style: TextStyle(fontWeight: FontWeight.bold)),
-              accountEmail: Text(FirebaseAuth.instance.currentUser?.email ?? "Email tidak ditemukan"),
+              currentAccountPicture: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                // Memberikan sedikit bayangan agar logo lebih menonjol
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0), // Memberikan ruang agar logo tidak mepet ke pinggir
+                  child: Image.asset(
+                    'assets/images/header.png', // Pastikan path ini sesuai dengan lokasi logo kamu
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Jika gambar gagal dimuat, tampilkan inisial sebagai cadangan
+                      return Center(
+                        child: Text(
+                          _displayName.isNotEmpty ? _displayName[0].toUpperCase() : "S",
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E824C),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text("Logout", style: TextStyle(color: Colors.red)),
-              onTap: _showLogoutDialog, 
+              accountName: Text(_displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              accountEmail: Text(_auth.currentUser?.email ?? "No Email", style: TextStyle(color: Colors.white.withOpacity(0.8))),
+            ),
+            _buildDrawerItem(Icons.home_outlined, "Halaman Utama", 0),
+            _buildDrawerItem(Icons.history_rounded, "Laporan Riwayat", 2),
+            _buildDrawerItem(Icons.help_center_outlined, "Panduan Parameter", -1, action: _showGuidelineDialog),
+            const Divider(indent: 20, endIndent: 20),
+            _buildDrawerItem(Icons.logout, "Logout", -1, action: _showLogoutDialog, isDanger: true),
+            const Spacer(),
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                "SelaData v1.0.0\nSmart Farming System",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 11, letterSpacing: 0.5),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String title, int index, {VoidCallback? action, bool isDanger = false}) {
+    bool isSelected = _selectedIndex == index;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        tileColor: isSelected ? const Color(0xFF1E824C).withOpacity(0.1) : Colors.transparent,
+        leading: Icon(icon, color: isDanger ? Colors.red : (isSelected ? const Color(0xFF1E824C) : Colors.black54)),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDanger ? Colors.red : (isSelected ? const Color(0xFF1E824C) : Colors.black87),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        onTap: () {
+          Navigator.pop(context);
+          if (action != null) {
+            action();
+          } else {
+            setState(() => _selectedIndex = index);
+          }
+        },
       ),
     );
   }

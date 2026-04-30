@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Tambahkan ini
-import 'package:seladata/main.dart'; // Tambahkan ini agar bisa pindah ke MainPage setelah daftar
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart'; // Tambahkan ini untuk akses database
+import 'package:seladata/main.dart'; 
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,7 +15,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Tambahkan variabel loading agar user tahu proses sedang berjalan
   bool _isLoading = false;
 
   @override
@@ -25,26 +25,35 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // FUNGSI UTAMA UNTUK REGISTER KE FIREBASE
+  // FUNGSI UTAMA UNTUK REGISTER
   Future<void> _handleSignUp() async {
-    // 1. Validasi input kosong
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    // 1. Validasi input kosong (Termasuk Name)
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
       );
       return;
     }
 
-    setState(() => _isLoading = true); // Tampilkan loading
+    setState(() => _isLoading = true);
 
     try {
-      // 2. Panggil fungsi Firebase Auth
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // 2. Panggil fungsi Firebase Auth untuk membuat akun
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // 3. Jika berhasil, beri notifikasi dan pindah halaman
+      // 3. SIMPAN NAMA KE REALTIME DATABASE
+      // Menggunakan UID dari user yang baru saja mendaftar
+      String uid = userCredential.user!.uid;
+      await FirebaseDatabase.instance.ref('users/$uid').set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'created_at': ServerValue.timestamp, // Untuk mencatat kapan akun dibuat
+      });
+
+      // 4. Jika semua berhasil, pindah halaman
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
@@ -52,11 +61,10 @@ class _RegisterPageState extends State<RegisterPage> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MainPage()),
-          (route) => false, // Hapus semua riwayat halaman sebelumnya
+          (route) => false,
         );
       }
     } on FirebaseAuthException catch (e) {
-      // 4. Tangani error spesifik dari Firebase
       String errorMessage = "An error occurred";
       if (e.code == 'weak-password') {
         errorMessage = "The password provided is too weak.";
@@ -69,8 +77,13 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
       );
+    } catch (e) {
+      // Tangani error database atau lainnya
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
     } finally {
-      if (mounted) setState(() => _isLoading = false); // Matikan loading
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -107,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 40),
 
-              // INPUT FULL NAME (Untuk saat ini simpan di controller saja)
+              // INPUT FULL NAME
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -142,7 +155,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 40),
 
-              // TOMBOL REGISTER DENGAN LOADING INDICATOR
+              // TOMBOL REGISTER
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -153,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  onPressed: _isLoading ? null : _handleSignUp, // Nonaktifkan jika loading
+                  onPressed: _isLoading ? null : _handleSignUp,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
@@ -169,9 +182,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   const Text("Already have an account?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     child: const Text(
                       "Login",
                       style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E824C)),
