@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import '../widgets/custom_header.dart';
+import '../widgets/custom_header.dart'; // Pastikan path ini sesuai dengan struktur folder Anda
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -32,6 +32,12 @@ class _DashboardPageState extends State<DashboardPage> {
               data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
             }
 
+            // --- EKSTRAKSI DATA UNTUK BANNER ---
+            // Mengambil data dari map 'data' dan mengubahnya menjadi tipe double
+            double nilaiPh = double.tryParse(data['ph'].toString()) ?? 0.0;
+            double nilaiSuhu = double.tryParse(data['suhu_air'].toString()) ?? 0.0;
+            double nilaiTinggiAir = double.tryParse(data['tinggi_air'].toString()) ?? 0.0;
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Column(
@@ -39,7 +45,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   const CustomHeader(),
                   const SizedBox(height: 30),
-                  _buildMainBanner(),
+                  
+                  // Memanggil widget banner dengan data yang sudah diekstrak
+                  _buildMainBanner(nilaiPh, nilaiSuhu, nilaiTinggiAir),
+                  
                   const SizedBox(height: 30),
 
                   // SEKSI KUALITAS AIR
@@ -73,7 +82,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 25),
 
-                  // SEKSI LINGKUNGAN (SEKARANG SUDAH OTOMATIS)
+                  // SEKSI LINGKUNGAN 
                   const Text("Lingkungan", 
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF263238))),
                   const SizedBox(height: 15),
@@ -86,7 +95,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         unit: "°C", 
                         color: Colors.red[50]!, 
                         iconColor: Colors.red[700]!,
-                        status: _getSuhuStatus(data['suhu_air']), // Memanggil logika suhu
+                        status: _getSuhuStatus(data['suhu_air']), 
                         statusColor: _getSuhuStatusColor(data['suhu_air']),
                       )),
                       const SizedBox(width: 16),
@@ -97,7 +106,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         unit: "%", 
                         color: Colors.cyan[50]!, 
                         iconColor: Colors.cyan[700]!,
-                        status: _getTinggiStatus(data['tinggi_air']), // Memanggil logika tinggi air
+                        status: _getTinggiStatus(data['tinggi_air']), 
                         statusColor: _getTinggiStatusColor(data['tinggi_air']),
                       )),
                     ],
@@ -167,20 +176,62 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // --- WIDGET PENDUKUNG ---
 
-  Widget _buildMainBanner() {
+  // Widget Banner Dinamis
+  Widget _buildMainBanner(double ph, double suhuUdara, double tinggiAir) {
+    // 1. Variabel Default (Kondisi Normal)
+    Color bannerColor = const Color(0xFF1E824C); // Hijau
+    String statusTitle = "KONDISI TANAMAN: OPTIMAL";
+    String statusMessage = "Data sensor stabil. Lingkungan ideal untuk pertumbuhan.";
+
+    // 2. Logika Kondisional (Rule-Based)
+    if (tinggiAir < 20.0) {
+      // Prioritas 1: Kritis (Merah) jika air tandon habis
+      bannerColor = Colors.red.shade700;
+      statusTitle = "KRITIS: TANDON AIR KOSONG!";
+      statusMessage = "Tinggi air di bawah 20%. Pompa menyala otomatis.";
+    } else if (ph < 5.5 || ph > 6.5) {
+      // Prioritas 2: Peringatan (Kuning/Oranye) jika pH di luar batas
+      bannerColor = Colors.orange.shade800;
+      statusTitle = "PERINGATAN: pH ABNORMAL";
+      statusMessage = "Nilai pH ($ph) di luar ambang batas. Periksa larutan nutrisi!";
+    } else if (suhuUdara < 20.0 || suhuUdara > 28.0) {
+      // Prioritas 3: Peringatan untuk fluktuasi suhu (saya sesuaikan batas suhu atas ke 28 mengikuti _getSuhuStatus Anda)
+      bannerColor = Colors.orange.shade800;
+      statusTitle = "PERINGATAN: SUHU TIDAK STABIL";
+      statusMessage = "Suhu saat ini ($suhuUdara°C). Pastikan sirkulasi udara baik.";
+    }
+
+    // 3. Tampilan Antarmuka (UI)
     return Container(
       padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(color: const Color(0xFF1E824C), borderRadius: BorderRadius.circular(30)),
+      decoration: BoxDecoration(
+        color: bannerColor, 
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: bannerColor.withOpacity(0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ]
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("MASA TANAM: HARI KE-18", style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(statusTitle, 
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
           const SizedBox(height: 15),
-          const Text("12 Hari Menuju Panen", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text("12 Hari Menuju Panen", 
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 15),
-          LinearProgressIndicator(value: 18 / 30, backgroundColor: Colors.white.withOpacity(0.2), valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), minHeight: 8),
+          LinearProgressIndicator(
+              value: 18 / 30, 
+              backgroundColor: Colors.white.withOpacity(0.2), 
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), 
+              minHeight: 8),
           const SizedBox(height: 15),
-          const Text("Data sensor diperbarui secara real-time dari Firebase.", style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text(statusMessage, 
+              style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4)),
         ],
       ),
     );

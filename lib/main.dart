@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:seladata/screens/splash_screen.dart';
 import 'dart:async';
 import 'firebase_options.dart';
 
+// Pastikan import SplashPage sudah benar sesuai folder proyekmu
+import 'screens/splash_screen.dart'; 
 import 'screens/dashboard_page.dart';
 import 'screens/control_page.dart';
 import 'screens/reports_page.dart';
@@ -30,12 +33,10 @@ class MyApp extends StatelessWidget {
       title: 'SelaData',
       theme: ThemeData(
         useMaterial3: true,
-        // Konsistensi warna hijau sesuai identitas SelaData
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1E824C),
           primary: const Color(0xFF1E824C),
         ),
-        // Mengatur font default agar bersih dan profesional
         fontFamily: 'Roboto', 
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         appBarTheme: const AppBarTheme(
@@ -45,10 +46,13 @@ class MyApp extends StatelessWidget {
           centerTitle: true,
         ),
       ),
-      home: const LoginPage(),
+      // MENGEMBALIKAN KE SplashPage SEBAGAI HALAMAN AWAL
+      home: const SplashScreen(), 
     );
   }
 }
+
+// ... (Sisa kode MainPage dan State tetap sama seperti sebelumnya)
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -144,6 +148,9 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
+// ... (Bagian import dan class awal tetap sama)
+
+  // PERBAIKAN FUNGSI DIALOG LOGOUT
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -152,11 +159,21 @@ class _MainPageState extends State<MainPage> {
         title: const Text("Logout"),
         content: const Text("Apakah Anda yakin ingin keluar dari SelaData?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text("Batal")
+          ),
           TextButton(
             onPressed: () async {
-              await _auth.signOut();
-              if (mounted) Navigator.pushReplacementNamed(context, '/login');
+              await _auth.signOut(); // Logout dari Firebase
+              if (mounted) {
+                // Gunakan cara ini agar tidak perlu mendaftarkan rute manual di MaterialApp
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false, // Menghapus semua riwayat halaman
+                );
+              }
             },
             child: const Text("Keluar", style: TextStyle(color: Colors.red)),
           ),
@@ -183,7 +200,6 @@ class _MainPageState extends State<MainPage> {
         unselectedItemColor: Colors.grey[400],
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
@@ -201,44 +217,31 @@ class _MainPageState extends State<MainPage> {
                 borderRadius: BorderRadius.only(bottomRight: Radius.circular(30)),
               ),
               currentAccountPicture: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                // Memberikan sedikit bayangan agar logo lebih menonjol
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipOval(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0), // Memberikan ruang agar logo tidak mepet ke pinggir
-                  child: Image.asset(
-                    'assets/images/header.png', // Pastikan path ini sesuai dengan lokasi logo kamu
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Jika gambar gagal dimuat, tampilkan inisial sebagai cadangan
-                      return Center(
-                        child: Text(
-                          _displayName.isNotEmpty ? _displayName[0].toUpperCase() : "S",
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E824C),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: ClipOval(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      'assets/images/logo_seladata.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Text(
+                            _displayName.isNotEmpty ? _displayName[0].toUpperCase() : "S",
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF1E824C)),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
               accountName: Text(_displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              accountEmail: Text(_auth.currentUser?.email ?? "No Email", style: TextStyle(color: Colors.white.withOpacity(0.8))),
+              accountEmail: Text(_auth.currentUser?.email ?? "No Email"),
             ),
             _buildDrawerItem(Icons.home_outlined, "Halaman Utama", 0),
             _buildDrawerItem(Icons.history_rounded, "Laporan Riwayat", 2),
@@ -251,7 +254,7 @@ class _MainPageState extends State<MainPage> {
               child: Text(
                 "SelaData v1.0.0\nSmart Farming System",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 11, letterSpacing: 0.5),
+                style: TextStyle(color: Colors.grey, fontSize: 11),
               ),
             ),
           ],
@@ -260,6 +263,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
+  // Fungsi helper untuk item drawer tetap sama
   Widget _buildDrawerItem(IconData icon, String title, int index, {VoidCallback? action, bool isDanger = false}) {
     bool isSelected = _selectedIndex == index;
     return Padding(
