@@ -6,7 +6,6 @@ import 'package:seladata/screens/splash_screen.dart';
 import 'dart:async';
 import 'firebase_options.dart';
 
-// Pastikan import SplashPage sudah benar sesuai folder proyekmu
 import 'screens/splash_screen.dart'; 
 import 'screens/dashboard_page.dart';
 import 'screens/control_page.dart';
