@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../widgets/custom_header.dart'; // Pastikan path ini sesuai dengan struktur folder Anda
 
 class DashboardPage extends StatefulWidget {
@@ -180,33 +182,37 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildMainBanner(double ph, double suhuUdara, double tinggiAir) {
     // 1. Variabel Default (Kondisi Normal)
     Color bannerColor = const Color(0xFF1E824C); // Hijau
-    String statusTitle = "KONDISI TANAMAN: OPTIMAL";
+    String statusTitle = "KONDISI OPTIMAL";
     String statusMessage = "Data sensor stabil. Lingkungan ideal untuk pertumbuhan.";
+    IconData statusIcon = Icons.eco; // Ikon daun untuk kondisi normal
 
     // 2. Logika Kondisional (Rule-Based)
     if (tinggiAir < 20.0) {
       // Prioritas 1: Kritis (Merah) jika air tandon habis
       bannerColor = Colors.red.shade700;
-      statusTitle = "KRITIS: TANDON AIR KOSONG!";
-      statusMessage = "Tinggi air di bawah 20%. Pompa menyala otomatis.";
+      statusTitle = "AIR KRITIS!";
+      statusMessage = "Tinggi air tandon di bawah 20%. Segera isi ulang agar pompa tidak rusak.";
+      statusIcon = Icons.water_drop_outlined; // Ikon tetesan air
     } else if (ph < 5.5 || ph > 6.5) {
       // Prioritas 2: Peringatan (Kuning/Oranye) jika pH di luar batas
       bannerColor = Colors.orange.shade800;
-      statusTitle = "PERINGATAN: pH ABNORMAL";
-      statusMessage = "Nilai pH ($ph) di luar ambang batas. Periksa larutan nutrisi!";
+      statusTitle = "pH ABNORMAL";
+      statusMessage = "Nilai pH ($ph) di luar ambang batas. Periksa kepekatan larutan nutrisi!";
+      statusIcon = Icons.science_outlined; // Ikon tabung reaksi/kimia
     } else if (suhuUdara < 20.0 || suhuUdara > 28.0) {
-      // Prioritas 3: Peringatan untuk fluktuasi suhu (saya sesuaikan batas suhu atas ke 28 mengikuti _getSuhuStatus Anda)
+      // Prioritas 3: Peringatan fluktuasi suhu
       bannerColor = Colors.orange.shade800;
-      statusTitle = "PERINGATAN: SUHU TIDAK STABIL";
-      statusMessage = "Suhu saat ini ($suhuUdara°C). Pastikan sirkulasi udara baik.";
+      statusTitle = "SUHU EKSTREM";
+      statusMessage = "Suhu saat ini ($suhuUdara°C). Pastikan sirkulasi udara di area tanam baik.";
+      statusIcon = Icons.thermostat_outlined; // Ikon termometer
     }
 
-    // 3. Tampilan Antarmuka (UI)
+    // 3. Tampilan Antarmuka (UI) Baru
     return Container(
-      padding: const EdgeInsets.all(25),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
       decoration: BoxDecoration(
         color: bannerColor, 
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24), // Sedikit diperkecil agar lebih elegan
         boxShadow: [
           BoxShadow(
             color: bannerColor.withOpacity(0.4),
@@ -215,23 +221,46 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ]
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(statusTitle, 
-              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 15),
-          const Text("12 Hari Menuju Panen", 
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 15),
-          LinearProgressIndicator(
-              value: 18 / 30, 
-              backgroundColor: Colors.white.withOpacity(0.2), 
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), 
-              minHeight: 8),
-          const SizedBox(height: 15),
-          Text(statusMessage, 
-              style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4)),
+          // Ikon Status Besar di Kiri
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2), // Efek transparan membaur dengan latar
+              shape: BoxShape.circle,
+            ),
+            child: Icon(statusIcon, color: Colors.white, size: 42),
+          ),
+          const SizedBox(width: 18),
+          
+          // Teks Status di Kanan
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  statusTitle, 
+                  style: const TextStyle(
+                    color: Colors.white, 
+                    fontSize: 20, 
+                    fontWeight: FontWeight.w900, // Dibuat sangat tebal agar mencolok
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  statusMessage, 
+                  style: const TextStyle(
+                    color: Colors.white, 
+                    fontSize: 13, 
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -286,9 +315,145 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildChartPlaceholder() {
     return Container(
-      height: 180, width: double.infinity,
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
-      child: const Center(child: Text("SelaData Real-time System Ready", style: TextStyle(color: Colors.grey))),
+      height: 240, // Sedikit lebih tinggi agar lebih lega
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(15, 20, 15, 10),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
+        ]
+      ),
+      child: StreamBuilder(
+        // 1. TINGKATKAN DETAIL: Ambil 20-30 data terakhir agar tren lebih terlihat jelas
+        stream: FirebaseDatabase.instance.ref('riwayat_sensor').limitToLast(25).onValue,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF1E824C)));
+          }
+
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.snapshot.value == null) {
+            return const Center(child: Text("Menunggu data riwayat...", style: TextStyle(color: Colors.grey)));
+          }
+
+          Map<dynamic, dynamic> rawData = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+          List<Map<String, dynamic>> historyList = [];
+
+          rawData.forEach((key, value) {
+            historyList.add({
+              'suhu': double.parse(value['suhu'].toString()),
+              'timestamp': (value['timestamp'] is int) ? value['timestamp'] : DateTime.now().millisecondsSinceEpoch,
+            });
+          });
+
+          historyList.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+
+          List<FlSpot> spots = [];
+          for (int i = 0; i < historyList.length; i++) {
+            spots.add(FlSpot(i.toDouble(), historyList[i]['suhu']));
+          }
+
+          if (spots.length < 2) return const Center(child: Text("Mengumpulkan data..."));
+
+          return LineChart(
+            LineChartData(
+              minY: 15, 
+              maxY: 35,
+              // 2. FITUR DETAIL: Tambahkan Tooltip saat grafik ditekan
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (LineBarSpot touchedSpot) => const Color(0xFF1E824C),
+                  getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                    return touchedBarSpots.map((barSpot) {
+                      final flSpot = barSpot;
+                      return LineTooltipItem(
+                        '${flSpot.y} °C\n',
+                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        children: [
+                          TextSpan(
+                            text: DateFormat('HH:mm').format(
+                              DateTime.fromMillisecondsSinceEpoch(historyList[flSpot.x.toInt()]['timestamp'])
+                            ),
+                            style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.normal),
+                          ),
+                        ],
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: true,
+                  color: const Color(0xFF1E824C),
+                  barWidth: 3,
+                  isStrokeCapRound: true,
+                  // 3. DETAIL VISUAL: Tampilkan titik kecil pada setiap data
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                      radius: 2,
+                      color: Colors.white,
+                      strokeWidth: 2,
+                      strokeColor: const Color(0xFF1E824C),
+                    ),
+                  ),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: const Color(0xFF1E824C).withOpacity(0.1),
+                  ),
+                ),
+              ],
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                // Sumbu Y (Kiri): Tampilkan angka suhu agar lebih detail
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      if (value == 20 || value == 25 || value == 30) {
+                        return Text('${value.toInt()}°', style: const TextStyle(fontSize: 10, color: Colors.grey));
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    interval: 1,
+                    getTitlesWidget: (value, meta) {
+                      int index = value.toInt();
+                      // Tampilkan label jam setiap 5 data agar tidak sesak
+                      if (index % 5 == 0 || index == historyList.length - 1) {
+                        DateTime time = DateTime.fromMillisecondsSinceEpoch(historyList[index]['timestamp']);
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Text(DateFormat('HH:mm').format(time), 
+                            style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+              ),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: 5,
+                getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withOpacity(0.1), strokeWidth: 1),
+              ),
+              borderData: FlBorderData(show: false),
+            ),
+          );
+        },
+      ),
     );
   }
 }
