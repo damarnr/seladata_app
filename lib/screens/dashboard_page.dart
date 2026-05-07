@@ -73,7 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       Expanded(child: _buildSensorCard(
                         icon: Icons.bolt, 
                         title: "Nutrient", 
-                        value: data['tds'].toString(), 
+                        value: double.parse(data['tds'].toString()).toStringAsFixed(0), 
                         unit: "PPM", 
                         color: Colors.orange[50]!, 
                         iconColor: Colors.orange[700]!,
@@ -93,7 +93,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       Expanded(child: _buildSensorCard(
                         icon: Icons.thermostat, 
                         title: "Suhu Air", 
-                        value: data['suhu_air'].toString(), 
+                        value: double.parse(data['suhu_air'].toString()).toStringAsFixed(1), 
                         unit: "°C", 
                         color: Colors.red[50]!, 
                         iconColor: Colors.red[700]!,
