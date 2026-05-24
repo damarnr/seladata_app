@@ -97,27 +97,65 @@ class _MainPageState extends State<MainPage> {
     super.dispose();
   }
 
-  void _showGuidelineDialog() {
+void _showGuidelineDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          "Panduan Nutrisi",
-          style: TextStyle(color: Color(0xFF1E824C), fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+        title: const Row(
           children: [
-            _buildGuidelineItem(Icons.science_outlined, "pH Air", "Ideal: 5.5 - 6.5", Colors.blue),
-            const SizedBox(height: 10),
-            _buildGuidelineItem(Icons.water_drop_outlined, "PPM (TDS)", "Ideal: 800 - 1200", Colors.orange),
+            Icon(Icons.menu_book_rounded, color: Color(0xFF1E824C)),
+            SizedBox(width: 10),
+            Text(
+              "Panduan Nutrisi",
+              style: TextStyle(color: Color(0xFF1E824C), fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Kadar Keasaman (pH)",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              // pH tetap statis karena idealnya memang di rentang ini untuk hidroponik
+              _buildGuidelineItem(Icons.science_outlined, "pH Air Ideal", "5.5 - 6.5 (Semua Umur)", Colors.blue),
+              
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                child: Divider(),
+              ),
+
+              const Text(
+                "Target Kepekatan (TDS/PPM)",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                "Sistem menyesuaikan nilai ini secara otomatis berdasarkan siklus Hari Setelah Tanam (HST).",
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+              const SizedBox(height: 15),
+              
+              // Rincian Fase berdasarkan logika HST
+              _buildGuidelineItem(Icons.local_florist_outlined, "1. Semai (0-6 HST)", "400 - 550 PPM", Colors.lightGreen),
+              const SizedBox(height: 10),
+              _buildGuidelineItem(Icons.eco_outlined, "2. Vegetatif (7-13 HST)", "600 - 750 PPM", Colors.green),
+              const SizedBox(height: 10),
+              _buildGuidelineItem(Icons.grass_outlined, "3. Pembesaran (14-24 HST)", "800 - 950 PPM", Colors.orange),
+              const SizedBox(height: 10),
+              _buildGuidelineItem(Icons.shopping_basket_outlined, "4. Panen (25+ HST)", "1000 - 1200 PPM", Colors.deepOrange),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Tutup", style: TextStyle(color: Color(0xFF1E824C))),
+            child: const Text("Tutup", style: TextStyle(color: Color(0xFF1E824C), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
