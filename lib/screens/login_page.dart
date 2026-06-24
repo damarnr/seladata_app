@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Tambahkan ini
-import 'package:seladata/main.dart'; // Agar bisa pindah ke MainPage setelah login sukses
-import 'register_page.dart'; // Untuk pindah ke halaman daftar
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:seladata/main.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,7 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
-  bool _isLoading = false; // Indikator loading
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -24,7 +24,6 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // FUNGSI UTAMA LOGIN
   Future<void> _handleLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -36,21 +35,18 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Perintah Firebase untuk mengecek email & password
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       if (mounted) {
-        // Jika sukses, langsung ke Dashboard
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainPage()),
         );
       }
     } on FirebaseAuthException catch (e) {
-      // Tangani error jika login gagal
       String message = "Login failed";
       if (e.code == 'user-not-found') {
         message = "No user found for that email.";
@@ -100,7 +96,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 50),
 
-              // INPUT EMAIL
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -112,7 +107,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              // INPUT PASSWORD
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -124,7 +118,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
 
-              // TOMBOL LOGIN
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -145,8 +138,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // LINK KE REGISTER
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
